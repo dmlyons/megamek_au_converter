@@ -1,4 +1,4 @@
-module xml2yml4mekhq
+module megamek_au_converter
 
 go 1.24.4
 
