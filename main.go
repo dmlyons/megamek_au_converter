@@ -30,6 +30,8 @@ func main() {
 		log.Fatalf("unmarshal systems %v", err)
 	}
 
+	log.Printf("loaded %d systems", len(systems.Systems))
+
 	// read the events
 	var events SystemEvents
 
@@ -41,8 +43,10 @@ func main() {
 		log.Fatalf("unmarshal systems %v", err)
 	}
 
+	log.Println("loaded events")
+
 	// create the output directory
-	err = os.Mkdir(*outDir, 0777)
+	err = os.MkdirAll(*outDir, 0777)
 	if err != nil {
 		log.Printf("create out dir %v", err)
 	}
@@ -62,10 +66,16 @@ func main() {
 		}
 	}
 
+	log.Println("done processing systems")
 }
 
 func process(outDir *string, system *System, events *Event) error {
-	fn := *outDir + `/` + strings.ReplaceAll(system.ID.Text, " ", "") + `.yml`
+	// clean up the filename
+	fn := strings.TrimSpace(system.ID.Text)
+	fn = strings.ReplaceAll(fn, " ", "")
+	fn = strings.ReplaceAll(fn, "/", "")
+	fn = *outDir + "/" + fn + ".yaml"
+
 	f, err := os.Create(fn)
 	if err != nil {
 		log.Printf("create yaml file %v", err)
@@ -103,12 +113,12 @@ func process(outDir *string, system *System, events *Event) error {
 	for _, p := range system.Planets {
 		planet := PsPlanet{
 			Name:        p.Name.Text,
-			Type:        p.Type.Text,
+			Type:        planetType(p.Type.Text),
 			OrbitalDist: toFloat(p.OrbitalDist.Text),
 			SysPos:      toInt(p.SysPos.Text),
 			Icon:        p.Icon.Text,
-			Pressure:    p.Pressure.Text,
-			Atmosphere:  p.Atmosphere.Text,
+			Pressure:    pressure(p.Pressure.Text),
+			Atmosphere:  atmosphere(p.Atmosphere.Text),
 			Gravity:     toFloat(p.Gravity.Text),
 			Diameter:    toFloat(p.Diameter.Text),
 			Density:     toFloat(p.Density.Text),
@@ -117,7 +127,7 @@ func process(outDir *string, system *System, events *Event) error {
 			Temperature: toInt(p.Temperature.Text),
 			Water:       toInt(p.Water.Text),
 			Composition: p.Composition.Text,
-			LifeForm:    p.LifeForm.Text,
+			LifeForm:    lifeForm(p.LifeForm.Text),
 			Landmasses:  []PspLandMass{},
 			Satellites:  []PspSatellite{},
 			Event:       []PspEvent{},
@@ -233,4 +243,94 @@ func planetEvents(events *Event, syspos int) []PspEvent {
 
 	}
 	return pEvents
+}
+
+// planetType converts the planet type from the xml to the yaml format
+func planetType(in string) string {
+	switch in {
+	case "Asteroid Belt":
+		return "ASTEROID_BELT"
+	case "Dwarf Terrestrial":
+		return "DWARF_TERRESTRIAL"
+	case "Gas Giant":
+		return "GAS_GIANT"
+	case "Giant Terrestrial":
+		return "GIANT_TERRESTRIAL"
+	case "Ice Giant":
+		return "ICE_GIANT"
+	case "Terrestrial":
+		return "TERRESTRIAL"
+	}
+	log.Printf("unknown planet type %s", in)
+	return ""
+}
+
+// pressure converts the pressure from the xml to the yaml format
+func pressure(in string) string {
+	switch in {
+	case "High":
+		return "HIGH"
+	case "Low":
+		return "THIN"
+	case "Normal", "Standard":
+		return "STANDARD"
+	case "Trace":
+		return "TRACE"
+	case "Vacuum":
+		return "VACUUM"
+	case "Very High":
+		return "VERY_HIGH"
+	case "":
+		return ""
+	}
+	log.Printf(`unknown pressure "%s"`, in)
+	return ""
+}
+
+// atmosphere converts the atmosphere from the xml to the yaml format
+func atmosphere(in string) string {
+	switch in {
+	case "Breathable":
+		return "BREATHABLE"
+	case "None":
+		return "NONE"
+	case "Tainted":
+		return "TAINTEDPOISON"
+	case "Tainted (Poisonous)":
+		return "TAINTEDPOISON"
+	case "Toxic (Caustic)":
+		return "TOXICCAUSTIC"
+	case "Toxic (Poisonous)":
+		return "TOXICPOISON"
+	case "":
+		return ""
+	}
+	log.Printf("unknown atmosphere %s", in)
+	return ""
+}
+
+// lifeForm converts the life form from the xml to the yaml format
+func lifeForm(in string) string {
+	switch in {
+	case "Amphibians", "AMPH":
+		return "AMPHIBIAN"
+	case "Birds", "BIRD":
+		return "BIRD"
+	case "Fish", "FISH":
+		return "FISH"
+	case "Insects", "INSECT":
+		return "INSECT"
+	case "Mammals", "MAMMAL":
+		return "MAMMAL"
+	case "Microbes", "MICROBE":
+		return "MICROBE"
+	case "Plants", "PLANT":
+		return "PLANT"
+	case "Reptiles", "REPTILE":
+		return "REPTILE"
+	case "NONE", "":
+		return ""
+	}
+	log.Printf("unknown life form %s", in)
+	return ""
 }
