@@ -14,7 +14,7 @@ import (
 
 func main() {
 	systemFile := flag.String("systems", "systems.xml", "your systems.xml file")
-	eventsFile := flag.String("events", "system_events.xml", "your systems.xml file")
+	eventsFile := flag.String("events", "system_events.xml", "your system_events.xml file")
 	outDir := flag.String("out", "out", "directory to output yml files")
 
 	flag.Parse()
