@@ -1,5 +1,5 @@
 module megamek_au_converter
 
-go 1.24.4
+go 1.24
 
 require github.com/goccy/go-yaml v1.18.0
