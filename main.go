@@ -136,6 +136,7 @@ func process(outDir *string, system *System, events *Event) error {
 			YearLength:  toFloat(p.YearLength.Text),
 			Temperature: toInt(p.Temperature.Text),
 			Water:       toInt(p.Water.Text),
+			Desc:        stringPtr(p.Desc.Text),
 			Composition: stringPtr(p.Composition.Text),
 			LifeForm:    lifeForm(p.LifeForm.Text),
 			Landmasses:  []PspLandMass{},

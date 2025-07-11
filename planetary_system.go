@@ -21,6 +21,7 @@ type PsPlanet struct {
 	YearLength  PlainFloat64   `yaml:"yearLength"`
 	Temperature *int           `yaml:"temperature,omitempty"`
 	Water       *int           `yaml:"water,omitempty"`
+	Desc        *string        `yaml:"desc,omitempty"`
 	Composition *string        `yaml:"composition,omitempty"`
 	LifeForm    *string        `yaml:"lifeForm,omitempty"`
 	Landmasses  []PspLandMass  `yaml:"landmass,omitempty"`
