@@ -12,6 +12,13 @@ import (
 	yaml "github.com/goccy/go-yaml"
 )
 
+type PlainFloat64 float64
+
+func (f PlainFloat64) MarshalYAML() (any, error) {
+	// Format with 'f' to avoid scientific notation
+	return strconv.FormatFloat(float64(f), 'f', -1, 64), nil
+}
+
 func main() {
 	systemFile := flag.String("systems", "systems.xml", "your systems.xml file")
 	eventsFile := flag.String("events", "system_events.xml", "your system_events.xml file")
@@ -194,7 +201,7 @@ func toInt(in string) *int {
 	return &out
 }
 
-func toFloat(in string) float64 {
+func toFloat(in string) PlainFloat64 {
 	if in == "" {
 		return 0.0
 	}
@@ -202,10 +209,10 @@ func toFloat(in string) float64 {
 	if err != nil {
 		panic(err)
 	}
-	return out
+	return PlainFloat64(out)
 }
 
-func toFloatPtr(in string) *float64 {
+func toFloatPtr(in string) *PlainFloat64 {
 	if in == "" {
 		return nil
 	}
@@ -213,7 +220,8 @@ func toFloatPtr(in string) *float64 {
 	if err != nil {
 		panic(err)
 	}
-	return &out
+	pf := PlainFloat64(out)
+	return &pf
 }
 
 func nameCapital(in string) (name, capital *string) {
@@ -257,11 +265,6 @@ func planetEvents(events *Event, syspos int) []PspEvent {
 
 	}
 	return pEvents
-}
-
-// p returns a pointer to the parameter
-func p[T any](v T) *T {
-	return &v
 }
 
 func stringPtr(s string) *string {

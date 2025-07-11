@@ -9,16 +9,16 @@ type PsEvent struct {
 type PsPlanet struct {
 	Name        string         `yaml:"name"`
 	Type        string         `yaml:"type"`
-	OrbitalDist float64        `yaml:"orbitalDist"`
+	OrbitalDist PlainFloat64   `yaml:"orbitalDist"`
 	SysPos      int            `yaml:"sysPos"`
 	Icon        string         `yaml:"icon"`
 	Pressure    string         `yaml:"pressure"`
 	Atmosphere  string         `yaml:"atmosphere"`
-	Gravity     float64        `yaml:"gravity"`
-	Diameter    float64        `yaml:"diameter"`
-	Density     float64        `yaml:"density"`
-	DayLength   float64        `yaml:"dayLength"`
-	YearLength  float64        `yaml:"yearLength"`
+	Gravity     PlainFloat64   `yaml:"gravity"`
+	Diameter    PlainFloat64   `yaml:"diameter"`
+	Density     PlainFloat64   `yaml:"density"`
+	DayLength   PlainFloat64   `yaml:"dayLength"`
+	YearLength  PlainFloat64   `yaml:"yearLength"`
 	Temperature *int           `yaml:"temperature,omitempty"`
 	Water       *int           `yaml:"water,omitempty"`
 	Composition *string        `yaml:"composition,omitempty"`
@@ -42,11 +42,11 @@ type PspLandMass struct {
 }
 
 type PspEvent struct {
-	Date            string      `yaml:"date"`
-	Faction         *PspFaction `yaml:"faction,omitempty"`
-	Population      *float64    `yaml:"population,omitempty"`
-	SocioIndustrial *string     `yaml:"socioIndustrial,omitempty"`
-	Hpg             *string     `yaml:"hpg,omitempty"`
+	Date            string        `yaml:"date"`
+	Faction         *PspFaction   `yaml:"faction,omitempty"`
+	Population      *PlainFloat64 `yaml:"population,omitempty"`
+	SocioIndustrial *string       `yaml:"socioIndustrial,omitempty"`
+	Hpg             *string       `yaml:"hpg,omitempty"`
 }
 
 type PspFaction struct {
