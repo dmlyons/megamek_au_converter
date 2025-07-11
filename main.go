@@ -86,6 +86,9 @@ func process(outDir *string, system *System, events *Event) error {
 	if err != nil {
 		return fmt.Errorf("strconv: %w", err)
 	}
+	if system.SucsId == 0 {
+		log.Printf("system %s has no sucsid", system.ID.Text)
+	}
 	ps := PlanetarySystem{
 		ID:           system.ID.Text,
 		SucsID:       system.SucsId,
@@ -102,8 +105,8 @@ func process(outDir *string, system *System, events *Event) error {
 	for _, sysEvent := range events.Events {
 		evs = append(evs, PsEvent{
 			Date:         sysEvent.Date,
-			NadirCharge:  sysEvent.NadirCharge.Text,
-			ZenithCharge: sysEvent.ZenithCharge.Text,
+			NadirCharge:  stringPtr(sysEvent.NadirCharge.Text),
+			ZenithCharge: stringPtr(sysEvent.ZenithCharge.Text),
 		})
 	}
 	ps.Events = evs
@@ -115,7 +118,7 @@ func process(outDir *string, system *System, events *Event) error {
 			Name:        p.Name.Text,
 			Type:        planetType(p.Type.Text),
 			OrbitalDist: toFloat(p.OrbitalDist.Text),
-			SysPos:      toInt(p.SysPos.Text),
+			SysPos:      *toInt(p.SysPos.Text),
 			Icon:        p.Icon.Text,
 			Pressure:    pressure(p.Pressure.Text),
 			Atmosphere:  atmosphere(p.Atmosphere.Text),
@@ -126,13 +129,13 @@ func process(outDir *string, system *System, events *Event) error {
 			YearLength:  toFloat(p.YearLength.Text),
 			Temperature: toInt(p.Temperature.Text),
 			Water:       toInt(p.Water.Text),
-			Composition: p.Composition.Text,
+			Composition: stringPtr(p.Composition.Text),
 			LifeForm:    lifeForm(p.LifeForm.Text),
 			Landmasses:  []PspLandMass{},
 			Satellites:  []PspSatellite{},
 			Event:       []PspEvent{},
 			SmallMoons:  toInt(p.SmallMoons.Text),
-			Ring:        p.Ring.Text,
+			Ring:        stringPtr(p.Ring.Text),
 		}
 
 		// planet landmasses, format is "Name (capital city)" in the xml, not very xml-like I think
@@ -141,7 +144,7 @@ func process(outDir *string, system *System, events *Event) error {
 			n, c := nameCapital(l.Text)
 
 			landmasses = append(landmasses, PspLandMass{
-				Name:    n,
+				Name:    *n,
 				Capital: c,
 			})
 		}
@@ -180,20 +183,20 @@ func process(outDir *string, system *System, events *Event) error {
 	return err
 }
 
-func toInt(in string) int {
+func toInt(in string) *int {
 	if in == "" {
-		return 0
+		return nil
 	}
 	out, err := strconv.Atoi(in)
 	if err != nil {
 		panic(err)
 	}
-	return out
+	return &out
 }
 
 func toFloat(in string) float64 {
 	if in == "" {
-		return 0
+		return 0.0
 	}
 	out, err := strconv.ParseFloat(in, 64)
 	if err != nil {
@@ -202,47 +205,70 @@ func toFloat(in string) float64 {
 	return out
 }
 
-func nameCapital(in string) (name, capital string) {
+func toFloatPtr(in string) *float64 {
+	if in == "" {
+		return nil
+	}
+	out, err := strconv.ParseFloat(in, 64)
+	if err != nil {
+		panic(err)
+	}
+	return &out
+}
+
+func nameCapital(in string) (name, capital *string) {
 	i := strings.LastIndex(in, `(`)
 	var n, c string
 	if i < 0 {
 		n = strings.TrimSpace(in)
-		c = ""
+		return &n, nil
 	} else {
 		n = strings.TrimSpace(in[:i])
 		// trim off the parens
 		c = in[i+1 : len(in)-1]
 	}
-
-	return n, c
+	return &n, &c
 }
 
 func planetEvents(events *Event, syspos int) []PspEvent {
 	pEvents := []PspEvent{}
 	// find the planet
 	for _, pevs := range events.Planets {
-		if toInt(pevs.SysPos.Text) == syspos {
+		if *toInt(pevs.SysPos.Text) == syspos {
 			// build up the events
 			for _, e := range pevs.Events {
-				factions := strings.Split(e.Faction.Text, " ")
-				pEvents = append(pEvents, PspEvent{
-					Date: e.Date,
-					Faction: struct {
-						Source string   "yaml:\"source\""
-						Value  []string "yaml:\"value\""
-					}{
+				var factions *PspFaction
+				if e.Faction.Text != "" {
+					fcts := strings.Split(e.Faction.Text, " ")
+					factions = &PspFaction{
 						Source: e.Faction.Source,
-						Value:  factions,
-					},
-					Population:      toFloat(e.Population.Text),
-					SocioIndustrial: e.SocioIndustrial.Text,
-					Hpg:             e.Hpg.Text,
+						Value:  fcts,
+					}
+				}
+				pEvents = append(pEvents, PspEvent{
+					Date:            e.Date,
+					Faction:         factions,
+					Population:      toFloatPtr(e.Population.Text),
+					SocioIndustrial: stringPtr(e.SocioIndustrial.Text),
+					Hpg:             stringPtr(e.Hpg.Text),
 				})
 			}
 		}
 
 	}
 	return pEvents
+}
+
+// p returns a pointer to the parameter
+func p[T any](v T) *T {
+	return &v
+}
+
+func stringPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }
 
 // planetType converts the planet type from the xml to the yaml format
@@ -310,27 +336,32 @@ func atmosphere(in string) string {
 }
 
 // lifeForm converts the life form from the xml to the yaml format
-func lifeForm(in string) string {
+func lifeForm(in string) *string {
+	if in == "" || in == "NONE" {
+		return nil
+	}
+
+	var lifeForm string
+
 	switch in {
 	case "Amphibians", "AMPH":
-		return "AMPHIBIAN"
+		lifeForm = "AMPHIBIAN"
 	case "Birds", "BIRD":
-		return "BIRD"
+		lifeForm = "BIRD"
 	case "Fish", "FISH":
-		return "FISH"
+		lifeForm = "FISH"
 	case "Insects", "INSECT":
-		return "INSECT"
+		lifeForm = "INSECT"
 	case "Mammals", "MAMMAL":
-		return "MAMMAL"
+		lifeForm = "MAMMAL"
 	case "Microbes", "MICROBE":
-		return "MICROBE"
+		lifeForm = "MICROBE"
 	case "Plants", "PLANT":
-		return "PLANT"
+		lifeForm = "PLANT"
 	case "Reptiles", "REPTILE":
-		return "REPTILE"
-	case "NONE", "":
-		return ""
+		lifeForm = "REPTILE"
+	default:
+		log.Printf("unknown life form %s", in)
 	}
-	log.Printf("unknown life form %s", in)
-	return ""
+	return &lifeForm
 }

@@ -1,9 +1,9 @@
 package main
 
 type PsEvent struct {
-	Date         string `yaml:"date"`
-	NadirCharge  string `yaml:"nadirCharge"`
-	ZenithCharge string `yaml:"zenithCharge"`
+	Date         string  `yaml:"date"`
+	NadirCharge  *string `yaml:"nadirCharge,omitempty"`
+	ZenithCharge *string `yaml:"zenithCharge,omitempty"`
 }
 
 type PsPlanet struct {
@@ -19,15 +19,15 @@ type PsPlanet struct {
 	Density     float64        `yaml:"density"`
 	DayLength   float64        `yaml:"dayLength"`
 	YearLength  float64        `yaml:"yearLength"`
-	Temperature int            `yaml:"temperature,omitempty"`
-	Water       int            `yaml:"water,omitempty"`
-	Composition string         `yaml:"composition,omitempty"`
-	LifeForm    string         `yaml:"lifeForm,omitempty"`
+	Temperature *int           `yaml:"temperature,omitempty"`
+	Water       *int           `yaml:"water,omitempty"`
+	Composition *string        `yaml:"composition,omitempty"`
+	LifeForm    *string        `yaml:"lifeForm,omitempty"`
 	Landmasses  []PspLandMass  `yaml:"landmass,omitempty"`
 	Satellites  []PspSatellite `yaml:"satellite,omitempty"`
 	Event       []PspEvent     `yaml:"event,omitempty"`
-	SmallMoons  int            `yaml:"smallMoons,omitempty"`
-	Ring        string         `yaml:"ring,omitempty"`
+	SmallMoons  *int           `yaml:"smallMoons,omitempty"`
+	Ring        *string        `yaml:"ring,omitempty"`
 }
 
 type PspSatellite struct {
@@ -37,19 +37,21 @@ type PspSatellite struct {
 }
 
 type PspLandMass struct {
-	Name    string `yaml:"name"`
-	Capital string `yaml:"capital,omitempty"`
+	Name    string  `yaml:"name"`
+	Capital *string `yaml:"capital,omitempty"`
 }
 
 type PspEvent struct {
-	Date    string `yaml:"date"`
-	Faction struct {
-		Source string   `yaml:"source"`
-		Value  []string `yaml:"value"`
-	} `yaml:"faction,omitempty"`
-	Population      float64 `yaml:"population,omitempty"`
-	SocioIndustrial string  `yaml:"socioIndustrial,omitempty"`
-	Hpg             string  `yaml:"hpg,omitempty"`
+	Date            string      `yaml:"date"`
+	Faction         *PspFaction `yaml:"faction,omitempty"`
+	Population      *float64    `yaml:"population,omitempty"`
+	SocioIndustrial *string     `yaml:"socioIndustrial,omitempty"`
+	Hpg             *string     `yaml:"hpg,omitempty"`
+}
+
+type PspFaction struct {
+	Source string   `yaml:"source"`
+	Value  []string `yaml:"value"`
 }
 
 type PlanetarySystem struct {
