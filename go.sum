@@ -1,2 +1,2 @@
-github.com/goccy/go-yaml v1.18.0 h1:8W7wMFS12Pcas7KU+VVkaiCng+kG8QiFeFwzFb+rwuw=
-github.com/goccy/go-yaml v1.18.0/go.mod h1:XBurs7gK8ATbW4ZPGKgcbrY1Br56PdM69F7LkFRi1kA=
+github.com/dmlyons/go-yaml v0.0.0-20250711185501-57cdc0dca050 h1:UWosrMDRa3fgrwFlDPbzLXrXQssLScnUaWRPBapnNyo=
+github.com/dmlyons/go-yaml v0.0.0-20250711185501-57cdc0dca050/go.mod h1:9Yms8JRYzWbf6P6OTzl0qXCmwb1QPX0P/pBlqedmV98=

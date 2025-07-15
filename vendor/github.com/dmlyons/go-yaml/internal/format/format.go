@@ -3,8 +3,8 @@ package format
 import (
 	"strings"
 
-	"github.com/goccy/go-yaml/ast"
-	"github.com/goccy/go-yaml/token"
+	"github.com/dmlyons/go-yaml/ast"
+	"github.com/dmlyons/go-yaml/token"
 )
 
 func FormatNodeWithResolvedAlias(n ast.Node, anchorNodeMap map[string]ast.Node) string {

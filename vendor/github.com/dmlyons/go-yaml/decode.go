@@ -17,11 +17,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goccy/go-yaml/ast"
-	"github.com/goccy/go-yaml/internal/errors"
-	"github.com/goccy/go-yaml/internal/format"
-	"github.com/goccy/go-yaml/parser"
-	"github.com/goccy/go-yaml/token"
+	"github.com/dmlyons/go-yaml/ast"
+	"github.com/dmlyons/go-yaml/internal/errors"
+	"github.com/dmlyons/go-yaml/internal/format"
+	"github.com/dmlyons/go-yaml/parser"
+	"github.com/dmlyons/go-yaml/token"
 )
 
 // Decoder reads and decodes YAML values from an input stream.
@@ -1451,7 +1451,7 @@ func (d *Decoder) decodeStruct(ctx context.Context, dst reflect.Value, src ast.N
 	}
 
 	if d.validator != nil {
-		if err := d.validator.Struct(dst.Addr().Interface()); err != nil {
+		if err := d.validator.Struct(dst.Interface()); err != nil {
 			ev := reflect.ValueOf(err)
 			if ev.Type().Kind() == reflect.Slice {
 				for i := 0; i < ev.Len(); i++ {

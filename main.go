@@ -9,15 +9,15 @@ import (
 	"strconv"
 	"strings"
 
-	yaml "github.com/goccy/go-yaml"
+	yaml "github.com/dmlyons/go-yaml"
 )
 
-type PlainFloat64 float64
-
-func (f PlainFloat64) MarshalYAML() (any, error) {
-	// Format with 'f' to avoid scientific notation
-	return strconv.FormatFloat(float64(f), 'f', -1, 64), nil
-}
+//type PlainFloat64 float64
+//
+//func (f PlainFloat64) MarshalYAML() (any, error) {
+//	// Format with 'f' to avoid scientific notation
+//	return strconv.FormatFloat(float64(f), 'f', -1, 64), nil
+//}
 
 func main() {
 	systemFile := flag.String("systems", "systems.xml", "your systems.xml file")
@@ -81,7 +81,7 @@ func process(outDir *string, system *System, events *Event) error {
 	fn := strings.TrimSpace(system.ID.Text)
 	fn = strings.ReplaceAll(fn, " ", "")
 	fn = strings.ReplaceAll(fn, "/", "")
-	fn = *outDir + "/" + fn + ".yaml"
+	fn = *outDir + "/" + fn + ".yml"
 
 	f, err := os.Create(fn)
 	if err != nil {
@@ -122,12 +122,12 @@ func process(outDir *string, system *System, events *Event) error {
 	planets := []PsPlanet{}
 	for _, p := range system.Planets {
 		planet := PsPlanet{
-			Name:        p.Name.Text,
-			Type:        planetType(p.Type.Text),
+			Name:        PsSourceWithValue{Source: p.Name.Source, Value: p.Name.Text},
+			Type:        PsSourceWithValue{Source: p.Type.Source, Value: planetType(p.Type.Text)},
 			OrbitalDist: toFloat(p.OrbitalDist.Text),
 			SysPos:      *toInt(p.SysPos.Text),
-			Icon:        p.Icon.Text,
-			Pressure:    pressure(p.Pressure.Text),
+			Icon:        PsSourceWithValue{Source: p.Icon.Source, Value: p.Icon.Text},
+			Pressure:    PsSourceWithValue{Source: p.Pressure.Source, Value: pressure(p.Pressure.Text)},
 			Atmosphere:  atmosphere(p.Atmosphere.Text),
 			Gravity:     toFloat(p.Gravity.Text),
 			Diameter:    toFloat(p.Diameter.Text),
@@ -202,7 +202,7 @@ func toInt(in string) *int {
 	return &out
 }
 
-func toFloat(in string) PlainFloat64 {
+func toFloat(in string) float64 {
 	if in == "" {
 		return 0.0
 	}
@@ -210,10 +210,10 @@ func toFloat(in string) PlainFloat64 {
 	if err != nil {
 		panic(err)
 	}
-	return PlainFloat64(out)
+	return out
 }
 
-func toFloatPtr(in string) *PlainFloat64 {
+func toFloatPtr(in string) *float64 {
 	if in == "" {
 		return nil
 	}
@@ -221,8 +221,7 @@ func toFloatPtr(in string) *PlainFloat64 {
 	if err != nil {
 		panic(err)
 	}
-	pf := PlainFloat64(out)
-	return &pf
+	return &out
 }
 
 func nameCapital(in string) (name, capital *string) {
@@ -234,7 +233,7 @@ func nameCapital(in string) (name, capital *string) {
 	} else {
 		n = strings.TrimSpace(in[:i])
 		// trim off the parens
-		c = in[i+1 : len(in)-1]
+		c = strings.Trim(in[i+1:], " ()")
 	}
 	return &n, &c
 }
