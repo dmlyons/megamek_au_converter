@@ -1,14 +1,14 @@
 package main
 
 type PsEvent struct {
-	Date         string  `yaml:"date"`
-	NadirCharge  *string `yaml:"nadirCharge,omitempty"`
-	ZenithCharge *string `yaml:"zenithCharge,omitempty"`
+	Date         string     `yaml:"date"`
+	NadirCharge  *YesNoBool `yaml:"nadirCharge,omitempty"`
+	ZenithCharge *YesNoBool `yaml:"zenithCharge,omitempty"`
 }
 
 type PsSourceWithValue struct {
 	Source string `yaml:"source"`
-	Value  string `yaml:"value"`
+	Value  any    `yaml:"value"`
 }
 
 func (p PsSourceWithValue) MarshalYAML() (any, error) {
@@ -18,6 +18,16 @@ func (p PsSourceWithValue) MarshalYAML() (any, error) {
 	// Use an alias to avoid recursion
 	type Alias PsSourceWithValue
 	return Alias(p), nil
+}
+
+// YesNoBool is a custom type to render boolean values as "yes" or "no" in YAML.
+type YesNoBool bool
+
+func (y YesNoBool) MarshalYAML() (any, error) {
+	if y {
+		return "yes", nil
+	}
+	return "no", nil
 }
 
 type PsPlanet struct {
@@ -42,7 +52,7 @@ type PsPlanet struct {
 	Satellites  []PspSatellite    `yaml:"satellite,omitempty"`
 	Event       []PspEvent        `yaml:"event,omitempty"`
 	SmallMoons  *int              `yaml:"smallMoons,omitempty"`
-	Ring        *string           `yaml:"ring,omitempty"`
+	Ring        *YesNoBool        `yaml:"ring,omitempty"`
 }
 
 type PspSatellite struct {
@@ -70,12 +80,12 @@ type PspFaction struct {
 }
 
 type PlanetarySystem struct {
-	ID           string     `yaml:"id"`
-	SucsID       int        `yaml:"sucsId"`
-	Xcood        float64    `yaml:"xcood"`
-	Ycood        float64    `yaml:"ycood"`
-	SpectralType string     `yaml:"spectralType"`
-	PrimarySlot  int        `yaml:"primarySlot"`
-	Events       []PsEvent  `yaml:"event"`
-	Planets      []PsPlanet `yaml:"planet"`
+	ID           string            `yaml:"id"`
+	SucsID       int               `yaml:"sucsId"`
+	Xcood        float64           `yaml:"xcood"`
+	Ycood        float64           `yaml:"ycood"`
+	SpectralType PsSourceWithValue `yaml:"spectralType"`
+	PrimarySlot  PsSourceWithValue `yaml:"primarySlot"`
+	Events       []PsEvent         `yaml:"event"`
+	Planets      []PsPlanet        `yaml:"planet"`
 }

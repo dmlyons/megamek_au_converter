@@ -97,14 +97,20 @@ func process(outDir *string, system *System, events *Event) error {
 		log.Printf("system %s has no sucsid", system.ID.Text)
 	}
 	ps := PlanetarySystem{
-		ID:           system.ID.Text,
-		SucsID:       system.SucsId,
-		Xcood:        system.Xcood,
-		Ycood:        system.Ycood,
-		SpectralType: system.SpectralType.Text,
-		PrimarySlot:  primarySlot,
-		Events:       []PsEvent{},
-		Planets:      []PsPlanet{},
+		ID:     system.ID.Text,
+		SucsID: system.SucsId,
+		Xcood:  system.Xcood,
+		Ycood:  system.Ycood,
+		SpectralType: PsSourceWithValue{
+			Source: system.SpectralType.Source,
+			Value:  system.SpectralType.Text,
+		},
+		PrimarySlot: PsSourceWithValue{
+			Source: system.PrimarySlot.Source,
+			Value:  primarySlot,
+		},
+		Events:  []PsEvent{},
+		Planets: []PsPlanet{},
 	}
 
 	// system events
@@ -112,8 +118,8 @@ func process(outDir *string, system *System, events *Event) error {
 	for _, sysEvent := range events.Events {
 		evs = append(evs, PsEvent{
 			Date:         sysEvent.Date,
-			NadirCharge:  stringPtr(sysEvent.NadirCharge.Text),
-			ZenithCharge: stringPtr(sysEvent.ZenithCharge.Text),
+			NadirCharge:  toYesNoBool(sysEvent.NadirCharge.Text),
+			ZenithCharge: toYesNoBool(sysEvent.ZenithCharge.Text),
 		})
 	}
 	ps.Events = evs
@@ -143,7 +149,7 @@ func process(outDir *string, system *System, events *Event) error {
 			Satellites:  []PspSatellite{},
 			Event:       []PspEvent{},
 			SmallMoons:  toInt(p.SmallMoons.Text),
-			Ring:        stringPtr(p.Ring.Text),
+			Ring:        toYesNoBool(p.Ring.Text),
 		}
 
 		// planet landmasses, format is "Name (capital city)" in the xml, not very xml-like I think
@@ -211,6 +217,14 @@ func toFloat(in string) float64 {
 		panic(err)
 	}
 	return out
+}
+
+func toYesNoBool(in string) *YesNoBool {
+	if in == "true" || in == "yes" || in == "1" {
+		b := YesNoBool(true)
+		return &b
+	}
+	return nil
 }
 
 func toFloatPtr(in string) *float64 {
