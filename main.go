@@ -118,8 +118,8 @@ func process(outDir *string, system *System, events *Event) error {
 	for _, sysEvent := range events.Events {
 		evs = append(evs, PsEvent{
 			Date:         sysEvent.Date,
-			NadirCharge:  toYesNoBool(sysEvent.NadirCharge.Text),
-			ZenithCharge: toYesNoBool(sysEvent.ZenithCharge.Text),
+			NadirCharge:  toBoolPtr(sysEvent.NadirCharge.Text),
+			ZenithCharge: toBoolPtr(sysEvent.ZenithCharge.Text),
 		})
 	}
 	ps.Events = evs
@@ -128,12 +128,12 @@ func process(outDir *string, system *System, events *Event) error {
 	planets := []PsPlanet{}
 	for _, p := range system.Planets {
 		planet := PsPlanet{
-			Name:        PsSourceWithValue{Source: p.Name.Source, Value: p.Name.Text},
-			Type:        PsSourceWithValue{Source: p.Type.Source, Value: planetType(p.Type.Text)},
+			Name:        &PsSourceWithValue{Source: p.Name.Source, Value: p.Name.Text},
+			Type:        &PsSourceWithValue{Source: p.Type.Source, Value: planetType(p.Type.Text)},
 			OrbitalDist: toFloat(p.OrbitalDist.Text),
 			SysPos:      *toInt(p.SysPos.Text),
-			Icon:        PsSourceWithValue{Source: p.Icon.Source, Value: p.Icon.Text},
-			Pressure:    PsSourceWithValue{Source: p.Pressure.Source, Value: pressure(p.Pressure.Text)},
+			Icon:        &PsSourceWithValue{Source: p.Icon.Source, Value: p.Icon.Text},
+			Pressure:    &PsSourceWithValue{Source: p.Pressure.Source, Value: pressure(p.Pressure.Text)},
 			Atmosphere:  atmosphere(p.Atmosphere.Text),
 			Gravity:     toFloat(p.Gravity.Text),
 			Diameter:    toFloat(p.Diameter.Text),
@@ -149,7 +149,7 @@ func process(outDir *string, system *System, events *Event) error {
 			Satellites:  []PspSatellite{},
 			Event:       []PspEvent{},
 			SmallMoons:  toInt(p.SmallMoons.Text),
-			Ring:        toYesNoBool(p.Ring.Text),
+			Ring:        toBoolPtr(p.Ring.Text),
 		}
 
 		// planet landmasses, format is "Name (capital city)" in the xml, not very xml-like I think
@@ -219,9 +219,9 @@ func toFloat(in string) float64 {
 	return out
 }
 
-func toYesNoBool(in string) *YesNoBool {
+func toBoolPtr(in string) *bool {
 	if in == "true" || in == "yes" || in == "1" {
-		b := YesNoBool(true)
+		b := true
 		return &b
 	}
 	return nil
@@ -309,47 +309,58 @@ func planetType(in string) string {
 }
 
 // pressure converts the pressure from the xml to the yaml format
-func pressure(in string) string {
+func pressure(in string) *string {
+	if in == "" || in == "None" {
+		return nil
+	}
+	var p string
 	switch in {
 	case "High":
-		return "HIGH"
+		p = "HIGH"
 	case "Low":
-		return "THIN"
+		p = "THIN"
 	case "Normal", "Standard":
-		return "STANDARD"
+		p = "STANDARD"
 	case "Trace":
-		return "TRACE"
+		p = "TRACE"
 	case "Vacuum":
-		return "VACUUM"
+		p = "VACUUM"
 	case "Very High":
-		return "VERY_HIGH"
-	case "":
-		return ""
+		p = "VERY_HIGH"
+	default:
+		log.Printf("unknown pressure %s", in)
 	}
-	log.Printf(`unknown pressure "%s"`, in)
-	return ""
+	return &p
 }
 
 // atmosphere converts the atmosphere from the xml to the yaml format
-func atmosphere(in string) string {
+func atmosphere(in string) *string {
+	if in == "" || in == "None" {
+		return nil
+	}
+	var atmosphere string
 	switch in {
 	case "Breathable":
-		return "BREATHABLE"
-	case "None":
-		return "NONE"
+		atmosphere = "BREATHABLE"
 	case "Tainted":
-		return "TAINTEDPOISON"
+		atmosphere = "TAINTEDPOISON"
 	case "Tainted (Poisonous)":
-		return "TAINTEDPOISON"
+		atmosphere = "TAINTEDPOISON"
 	case "Toxic (Caustic)":
-		return "TOXICCAUSTIC"
+		atmosphere = "TOXICCAUSTIC"
 	case "Toxic (Poisonous)":
-		return "TOXICPOISON"
-	case "":
-		return ""
+		atmosphere = "TOXICPOISON"
+	case "Unknown":
+		atmosphere = "UNKNOWN"
+	case "None":
+		atmosphere = "NONE"
+	case "Unbreathable":
+		atmosphere = "UNBREATHABLE"
 	}
-	log.Printf("unknown atmosphere %s", in)
-	return ""
+	if atmosphere == "" {
+		log.Printf("unknown atmosphere %s", in)
+	}
+	return &atmosphere
 }
 
 // lifeForm converts the life form from the xml to the yaml format
