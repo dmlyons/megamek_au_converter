@@ -261,7 +261,7 @@ func planetEvents(events *Event, syspos int) []PspEvent {
 			for _, e := range pevs.Events {
 				var factions *PspFaction
 				if e.Faction.Text != "" {
-					fcts := strings.Split(e.Faction.Text, " ")
+					fcts := strings.Split(e.Faction.Text, ",")
 					factions = &PspFaction{
 						Source: e.Faction.Source,
 						Value:  fcts,
